@@ -1,0 +1,5 @@
+[build]
+buildCommand = "npm --prefix stock_dashboard/frontend install && npm --prefix stock_dashboard/frontend run build && pip install -r stock_dashboard/backend/requirements.txt"
+
+[deploy]
+startCommand = "bash stock_dashboard/start.sh"
