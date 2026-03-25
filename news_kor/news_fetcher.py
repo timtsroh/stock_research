@@ -10,6 +10,8 @@ from email.utils import parsedate_to_datetime
 
 NAVER_API_URL = "https://openapi.naver.com/v1/search/news.json"
 NEWSAPI_URL = "https://newsapi.org/v2/everything"
+MARKETAUX_URL = "https://api.marketaux.com/v1/news/all"
+ALPHAVANTAGE_URL = "https://www.alphavantage.co/query"
 FETCH_COUNT = 10
 MAX_PER_COMPANY = 3
 DELAY = 0.5  # 초
@@ -134,6 +136,108 @@ def search_naver(company: str, seen_urls: set) -> list[NewsItem]:
 
     time.sleep(DELAY)
     return results
+
+
+def search_marketaux(ticker: str, seen_urls: set) -> list[NewsItem]:
+    """Marketaux API로 티커 기반 뉴스 검색 (해외 기업용)."""
+    api_token = os.environ.get("MARKETAUX_API_KEY")
+    if not api_token:
+        raise ValueError("MARKETAUX_API_KEY 환경 변수가 설정되지 않았습니다.")
+
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=HOURS_LIMIT)
+    params = {
+        "symbols": ticker,
+        "api_token": api_token,
+        "language": "en",
+        "published_after": cutoff.strftime("%Y-%m-%dT%H:%M:%S"),
+        "limit": FETCH_COUNT,
+    }
+
+    try:
+        resp = requests.get(MARKETAUX_URL, params=params, timeout=10)
+        resp.raise_for_status()
+    except requests.RequestException as e:
+        print(f"  [WARN] {ticker} Marketaux 검색 실패: {e}")
+        return []
+
+    results = []
+    for article in resp.json().get("data", []):
+        if len(results) >= MAX_PER_COMPANY:
+            break
+        url = article.get("url", "")
+        if not url or url in seen_urls:
+            continue
+        title = _strip_html(article.get("title") or "")
+        if not title:
+            continue
+        seen_urls.add(url)
+        results.append(NewsItem(
+            title=title,
+            link=url,
+            pub_date=article.get("published_at", ""),
+            media=article.get("source", ""),
+        ))
+
+    time.sleep(DELAY)
+    return results
+
+
+def search_alphavantage(ticker: str, seen_urls: set) -> list[NewsItem]:
+    """Alpha Vantage NEWS_SENTIMENT API로 티커 기반 뉴스 검색 (해외 기업용)."""
+    api_key = os.environ.get("ALPHA_VANTAGE_API_KEY")
+    if not api_key:
+        raise ValueError("ALPHA_VANTAGE_API_KEY 환경 변수가 설정되지 않았습니다.")
+
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=HOURS_LIMIT)
+    params = {
+        "function": "NEWS_SENTIMENT",
+        "tickers": ticker,
+        "time_from": cutoff.strftime("%Y%m%dT%H%M"),
+        "limit": FETCH_COUNT,
+        "apikey": api_key,
+    }
+
+    try:
+        resp = requests.get(ALPHAVANTAGE_URL, params=params, timeout=10)
+        resp.raise_for_status()
+    except requests.RequestException as e:
+        print(f"  [WARN] {ticker} Alpha Vantage 검색 실패: {e}")
+        return []
+
+    data = resp.json()
+    if "feed" not in data:
+        msg = data.get("Information") or data.get("Note") or ""
+        print(f"  [WARN] {ticker} Alpha Vantage 응답 오류: {msg}")
+        return []
+
+    results = []
+    for article in data.get("feed", []):
+        if len(results) >= MAX_PER_COMPANY:
+            break
+        url = article.get("url", "")
+        if not url or url in seen_urls:
+            continue
+        title = _strip_html(article.get("title") or "")
+        if not title:
+            continue
+        seen_urls.add(url)
+        results.append(NewsItem(
+            title=title,
+            link=url,
+            pub_date=article.get("time_published", ""),
+            media=article.get("source", ""),
+        ))
+
+    time.sleep(DELAY)
+    return results
+
+
+def search_eng(ticker: str, seen_urls: set) -> list[NewsItem]:
+    """Marketaux(주) + Alpha Vantage(보조) 결합 검색 (해외 기업용)."""
+    results = search_marketaux(ticker, seen_urls)
+    if len(results) < MAX_PER_COMPANY:
+        results += search_alphavantage(ticker, seen_urls)
+    return results[:MAX_PER_COMPANY]
 
 
 def search_newsapi(company: str, seen_urls: set) -> list[NewsItem]:

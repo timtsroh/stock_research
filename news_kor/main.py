@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 
 from dotenv import load_dotenv
 
-from sheets_reader import get_companies
+from sheets_reader import get_companies, get_companies_with_tickers
 import news_fetcher
 from telegram_sender import build_combined_message, send_message
 
@@ -70,6 +70,48 @@ def run_feed(sheet_id: str, sheet_name: str, col: int, chat_id_env: str, search_
     print(f"     {'전송 완료' if success else '전송 실패'}")
 
 
+def run_eng_feed(sheet_id: str, sheet_name: str, chat_id_env: str, title: str):
+    print(f"\n{'='*50}")
+    print(f"[{sheet_name}] 피드 시작")
+    print(f"{'='*50}")
+
+    print(f"\n[1] {sheet_name} 시트에서 회사 목록 로드 중...")
+    try:
+        companies = get_companies_with_tickers(sheet_id, sheet_name)
+    except Exception as e:
+        print(f"[ERROR] 회사 목록 로드 실패: {e}")
+        return
+
+    print(f"  → {len(companies)}개 회사 로드: {', '.join(f'{n}({t})' for n, t in companies)}")
+    if not companies:
+        print("[INFO] 회사 목록이 비어 있어 스킵합니다.")
+        return
+
+    print(f"\n[2] 뉴스 검색 중...")
+    seen_urls: set = set()
+    company_news: dict = {}
+    total_articles = 0
+
+    for name, ticker in companies:
+        print(f"  → [{name} ({ticker})] 검색 중...")
+        news_items = news_fetcher.search_eng(ticker, seen_urls)
+        if news_items:
+            company_news[name] = news_items
+            total_articles += len(news_items)
+            print(f"     {len(news_items)}건 수집")
+        else:
+            print(f"     관련 뉴스 없음, 스킵")
+
+    print(f"\n[3] Telegram 전송 중... ({chat_id_env} / 총 {total_articles}건)")
+    if not company_news:
+        print("[INFO] 전송할 뉴스가 없어 스킵합니다.")
+        return
+
+    message = build_combined_message(company_news, title)
+    success = send_message(message, chat_id_env)
+    print(f"     {'전송 완료' if success else '전송 실패'}")
+
+
 def main():
     load_dotenv()
 
@@ -92,17 +134,15 @@ def main():
             title=feed["title"],
         )
 
-    # 2단계: 외국 기업 뉴스 (NewsAPI)
+    # 2단계: 외국 기업 뉴스 (Marketaux + Alpha Vantage)
     print(f"\n{'#'*50}")
-    print(f"# [2단계] 외국 기업 뉴스 — NewsAPI")
+    print(f"# [2단계] 외국 기업 뉴스 — Marketaux + Alpha Vantage")
     print(f"{'#'*50}")
     for feed in NEWSAPI_FEEDS:
-        run_feed(
+        run_eng_feed(
             sheet_id=sheet_id,
             sheet_name=feed["sheet_name"],
-            col=feed["col"],
             chat_id_env=feed["chat_id_env"],
-            search_fn=news_fetcher.search_newsapi,
             title=feed["title"],
         )
 

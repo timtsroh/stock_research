@@ -22,21 +22,14 @@ jobs:
       - name: 의존성 설치
         run: pip install -r news_kor/requirements.txt
 
-      - name: 시크릿 확인 (디버그)
-        env:
-          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
-          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_OAUTH_KEYS }}
-        run: |
-          echo "GOOGLE_SHEET_ID 길이: ${#GOOGLE_SHEET_ID}"
-          echo "GCP_OAUTH_KEYS 길이: ${#GOOGLE_SERVICE_ACCOUNT_JSON}"
-
       - name: 뉴스피드 실행
         env:
           GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_OAUTH_KEYS }}
           NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
           NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
-          NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
+          MARKETAUX_API_KEY: ${{ secrets.MARKETAUX_API_KEY }}
+          ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID_Light: ${{ secrets.TELEGRAM_CHAT_ID_LIGHT }}
           TELEGRAM_CHAT_ID_Atom: ${{ secrets.TELEGRAM_CHAT_ID_ATOM }}
