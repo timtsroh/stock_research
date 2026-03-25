@@ -72,10 +72,10 @@ def _is_within_hours(pub_date: str, hours: int = HOURS_LIMIT) -> bool:
         return True  # 파싱 실패 시 포함
 
 
-def _is_relevant(company: str, title: str, description: str) -> bool:
-    """회사명이 제목+본문에 2회 이상 등장하면 관련 기사로 판단."""
+def _is_relevant(company: str, title: str, description: str, min_count: int = 2) -> bool:
+    """회사명이 제목+본문에 min_count회 이상 등장하면 관련 기사로 판단."""
     combined = (title + " " + (description or "")).lower()
-    return combined.count(company.lower()) >= 2
+    return combined.count(company.lower()) >= min_count
 
 
 def _extract_media(url: str) -> str:
@@ -178,7 +178,7 @@ def search_newsapi(company: str, seen_urls: set) -> list[NewsItem]:
 
         title = _strip_html(article.get("title") or "")
         description = _strip_html(article.get("description") or "")
-        if not title or not _is_relevant(company, title, description):
+        if not title or not _is_relevant(company, title, description, min_count=1):
             continue
 
         seen_urls.add(url)
