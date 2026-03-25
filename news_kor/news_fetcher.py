@@ -2,13 +2,15 @@ import os
 import re
 import time
 import requests
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlencode
 from email.utils import parsedate_to_datetime
 
 
 NAVER_API_URL = "https://openapi.naver.com/v1/search/news.json"
+GOOGLE_NEWS_RSS_URL = "https://news.google.com/rss/search"
 NEWSAPI_URL = "https://newsapi.org/v2/everything"
 MARKETAUX_URL = "https://api.marketaux.com/v1/news/all"
 ALPHAVANTAGE_URL = "https://www.alphavantage.co/query"
@@ -134,6 +136,50 @@ def search_naver(company: str, seen_urls: set) -> list[NewsItem]:
 
         seen_urls.add(url)
         results.append(NewsItem(title=title, link=url, pub_date=pub_date, media=_extract_media(url)))
+
+    time.sleep(DELAY)
+    return results
+
+
+def search_google_news(company: str, seen_urls: set) -> list[NewsItem]:
+    """Google 뉴스 RSS로 회사 관련 뉴스 검색 (국내 기업용)."""
+    params = {"q": company, "hl": "ko", "gl": "KR", "ceid": "KR:ko"}
+    url = f"{GOOGLE_NEWS_RSS_URL}?{urlencode(params)}"
+
+    try:
+        resp = requests.get(url, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
+        resp.raise_for_status()
+        root = ET.fromstring(resp.content)
+    except Exception as e:
+        print(f"  [WARN] {company} Google 뉴스 검색 실패: {e}")
+        return []
+
+    results = []
+    for item in root.findall(".//item"):
+        if len(results) >= MAX_PER_COMPANY:
+            break
+
+        pub_date = item.findtext("pubDate") or ""
+        if not _is_within_hours(pub_date):
+            continue
+
+        link = item.findtext("link") or ""
+        if not link or link in seen_urls:
+            continue
+
+        raw_title = _strip_html(item.findtext("title") or "")
+        # Google 뉴스 제목 형식: "기사 제목 - 언론사명"
+        if " - " in raw_title:
+            title, media = raw_title.rsplit(" - ", 1)
+        else:
+            title, media = raw_title, ""
+
+        description = _strip_html(item.findtext("description") or "")
+        if not _is_relevant(company, title, description, min_count=1):
+            continue
+
+        seen_urls.add(link)
+        results.append(NewsItem(title=title.strip(), link=link, pub_date=pub_date, media=media.strip()))
 
     time.sleep(DELAY)
     return results
