@@ -22,12 +22,10 @@ jobs:
       - name: 의존성 설치
         run: pip install -r news_kor/requirements.txt
 
-      - name: GCP 키 파일 복원
-        run: echo '${{ secrets.GCP_OAUTH_KEYS }}' > news_kor/gcp-oauth.keys2.json
-
       - name: 뉴스피드 실행
         env:
           GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_OAUTH_KEYS }}
           NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
           NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
           NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
