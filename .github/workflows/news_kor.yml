@@ -22,6 +22,14 @@ jobs:
       - name: 의존성 설치
         run: pip install -r news_kor/requirements.txt
 
+      - name: 시크릿 확인 (디버그)
+        env:
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_OAUTH_KEYS }}
+        run: |
+          echo "GOOGLE_SHEET_ID 길이: ${#GOOGLE_SHEET_ID}"
+          echo "GCP_OAUTH_KEYS 길이: ${#GOOGLE_SERVICE_ACCOUNT_JSON}"
+
       - name: 뉴스피드 실행
         env:
           GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
