@@ -120,9 +120,9 @@ def main():
     start_time = datetime.now(KST)
     print(f"=== 뉴스 피드 시작: {start_time.strftime('%Y-%m-%d %H:%M KST')} ===")
 
-    # 1단계: 한국 기업 뉴스 (Google 뉴스 RSS)
+    # 1단계: 한국 기업 뉴스 (카카오 뉴스)
     print(f"\n{'#'*50}")
-    print(f"# [1단계] 한국 기업 뉴스 — Google 뉴스")
+    print(f"# [1단계] 한국 기업 뉴스 — 카카오")
     print(f"{'#'*50}")
     for feed in NAVER_FEEDS:
         run_feed(
@@ -130,7 +130,7 @@ def main():
             sheet_name=feed["sheet_name"],
             col=feed["col"],
             chat_id_env=feed["chat_id_env"],
-            search_fn=news_fetcher.search_google_news,
+            search_fn=news_fetcher.search_kakao,
             title=feed["title"],
         )
 
