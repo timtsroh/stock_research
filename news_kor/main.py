@@ -12,7 +12,7 @@ from telegram_sender import build_combined_message, send_message
 
 KST = ZoneInfo("Asia/Seoul")
 
-# Google 뉴스 RSS 피드 (한국 기업)
+# Naver 검색 피드 (한국 기업)
 NAVER_FEEDS = [
     {"sheet_name": "Light", "col": 2, "chat_id_env": "TELEGRAM_NEWS_ID_Light", "title": "📌 등대 포트폴리오 뉴스피드 (국내)"},
     {"sheet_name": "Atom",  "col": 2, "chat_id_env": "TELEGRAM_NEWS_ID_Atom",  "title": "📌 김아톰 포트폴리오 뉴스피드"},
@@ -120,9 +120,9 @@ def main():
     start_time = datetime.now(KST)
     print(f"=== 뉴스 피드 시작: {start_time.strftime('%Y-%m-%d %H:%M KST')} ===")
 
-    # 1단계: 한국 기업 뉴스 (카카오 뉴스)
+    # 1단계: 한국 기업 뉴스 (Naver)
     print(f"\n{'#'*50}")
-    print(f"# [1단계] 한국 기업 뉴스 — 카카오")
+    print(f"# [1단계] 한국 기업 뉴스 — Naver")
     print(f"{'#'*50}")
     for feed in NAVER_FEEDS:
         run_feed(
@@ -130,7 +130,7 @@ def main():
             sheet_name=feed["sheet_name"],
             col=feed["col"],
             chat_id_env=feed["chat_id_env"],
-            search_fn=news_fetcher.search_kakao,
+            search_fn=news_fetcher.search_naver,
             title=feed["title"],
         )
 

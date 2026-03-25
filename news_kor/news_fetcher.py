@@ -2,15 +2,13 @@ import os
 import re
 import time
 import requests
-import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from urllib.parse import urlparse, urlencode
+from urllib.parse import urlparse
 from email.utils import parsedate_to_datetime
 
 
 NAVER_API_URL = "https://openapi.naver.com/v1/search/news.json"
-KAKAO_NEWS_URL = "https://dapi.kakao.com/v2/search/news"
 NEWSAPI_URL = "https://newsapi.org/v2/everything"
 MARKETAUX_URL = "https://api.marketaux.com/v1/news/all"
 ALPHAVANTAGE_URL = "https://www.alphavantage.co/query"
@@ -141,50 +139,6 @@ def search_naver(company: str, seen_urls: set) -> list[NewsItem]:
     return results
 
 
-def search_kakao(company: str, seen_urls: set) -> list[NewsItem]:
-    """카카오 뉴스 검색 API로 회사 관련 뉴스 검색 (국내 기업용)."""
-    api_key = os.environ.get("KAKAO_REST_API_KEY")
-    if not api_key:
-        raise ValueError("KAKAO_REST_API_KEY 환경 변수가 설정되지 않았습니다.")
-
-    headers = {"Authorization": f"KakaoAK {api_key}"}
-    params = {"query": company, "sort": "recency", "size": FETCH_COUNT}
-
-    try:
-        resp = requests.get(KAKAO_NEWS_URL, headers=headers, params=params, timeout=10)
-        resp.raise_for_status()
-    except requests.RequestException as e:
-        print(f"  [WARN] {company} 카카오 뉴스 검색 실패: {e}")
-        return []
-
-    results = []
-    for item in resp.json().get("documents", []):
-        if len(results) >= MAX_PER_COMPANY:
-            break
-
-        pub_date = item.get("datetime", "")
-        if not _is_within_hours(pub_date):
-            continue
-
-        url = item.get("url", "")
-        if not url or url in seen_urls:
-            continue
-
-        title = _strip_html(item.get("title", ""))
-        contents = _strip_html(item.get("contents", ""))
-        if not _is_relevant(company, title, contents, min_count=1):
-            continue
-
-        seen_urls.add(url)
-        results.append(NewsItem(
-            title=title,
-            link=url,
-            pub_date=pub_date,
-            media=item.get("source", ""),
-        ))
-
-    time.sleep(DELAY)
-    return results
 
 
 def search_marketaux(ticker: str, seen_urls: set) -> list[NewsItem]:
