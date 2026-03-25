@@ -2,7 +2,7 @@ fastapi==0.111.0
 uvicorn==0.29.0
 python-dotenv==1.0.1
 yfinance==0.2.40
-FinanceDataReader==0.9.50
+finance-datareader
 pandas==2.2.2
 sqlalchemy==2.0.30
 pydantic==2.7.1
