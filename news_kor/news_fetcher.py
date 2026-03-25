@@ -12,6 +12,7 @@ NAVER_API_URL = "https://openapi.naver.com/v1/search/news.json"
 NEWSAPI_URL = "https://newsapi.org/v2/everything"
 MARKETAUX_URL = "https://api.marketaux.com/v1/news/all"
 ALPHAVANTAGE_URL = "https://www.alphavantage.co/query"
+FINNHUB_URL = "https://finnhub.io/api/v1/company-news"
 FETCH_COUNT = 10
 MAX_PER_COMPANY = 3
 DELAY = 0.5  # 초
@@ -232,9 +233,58 @@ def search_alphavantage(ticker: str, seen_urls: set) -> list[NewsItem]:
     return results
 
 
+def search_finnhub(ticker: str, seen_urls: set) -> list[NewsItem]:
+    """Finnhub API로 티커 기반 뉴스 검색 (해외 기업용)."""
+    api_key = os.environ.get("FINNHUB_API_KEY")
+    if not api_key:
+        raise ValueError("FINNHUB_API_KEY 환경 변수가 설정되지 않았습니다.")
+
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(hours=HOURS_LIMIT)
+    params = {
+        "symbol": ticker,
+        "from": cutoff.strftime("%Y-%m-%d"),
+        "to": now.strftime("%Y-%m-%d"),
+        "token": api_key,
+    }
+
+    try:
+        resp = requests.get(FINNHUB_URL, params=params, timeout=10)
+        resp.raise_for_status()
+    except requests.RequestException as e:
+        print(f"  [WARN] {ticker} Finnhub 검색 실패: {e}")
+        return []
+
+    results = []
+    for article in resp.json():
+        if len(results) >= MAX_PER_COMPANY:
+            break
+        url = article.get("url", "")
+        if not url or url in seen_urls:
+            continue
+        title = _strip_html(article.get("headline") or "")
+        if not title:
+            continue
+        pub_date = datetime.fromtimestamp(article.get("datetime", 0), tz=timezone.utc).isoformat()
+        if not _is_within_hours(pub_date):
+            continue
+        seen_urls.add(url)
+        results.append(NewsItem(
+            title=title,
+            link=url,
+            pub_date=pub_date,
+            media=article.get("source", ""),
+        ))
+
+    time.sleep(DELAY)
+    return results
+
+
 def search_eng(ticker: str, seen_urls: set) -> list[NewsItem]:
-    """Marketaux(주) + Alpha Vantage(보조) 결합 검색 (해외 기업용)."""
+    """Marketaux(주) + Finnhub + Alpha Vantage(보조) 결합 검색 (해외 기업용)."""
     results = search_marketaux(ticker, seen_urls)
+    if len(results) < MAX_PER_COMPANY:
+        results += search_finnhub(ticker, seen_urls)
     if len(results) < MAX_PER_COMPANY:
         results += search_alphavantage(ticker, seen_urls)
     return results[:MAX_PER_COMPANY]
