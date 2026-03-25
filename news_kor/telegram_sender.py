@@ -3,7 +3,6 @@ import requests
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from naver_news import NewsItem
 
 
 KST = ZoneInfo("Asia/Seoul")
@@ -11,8 +10,15 @@ TELEGRAM_API = "https://api.telegram.org/bot{token}/sendMessage"
 
 
 def _format_pub_date(pub_date: str) -> str:
-    """RFC 2822 형식의 pubDate를 KST로 변환해 반환."""
+    """ISO 8601 또는 RFC 2822 형식의 날짜를 KST로 변환해 반환."""
     try:
+        # ISO 8601: 2026-03-25T09:00:00Z
+        dt = datetime.fromisoformat(pub_date.replace("Z", "+00:00")).astimezone(KST)
+        return dt.strftime("%Y-%m-%d %H:%M KST")
+    except Exception:
+        pass
+    try:
+        # RFC 2822 fallback
         from email.utils import parsedate_to_datetime
         dt = parsedate_to_datetime(pub_date).astimezone(KST)
         return dt.strftime("%Y-%m-%d %H:%M KST")
@@ -20,13 +26,13 @@ def _format_pub_date(pub_date: str) -> str:
         return pub_date
 
 
-def build_combined_message(company_news: dict[str, list[NewsItem]]) -> str:
+def build_combined_message(company_news: dict, title: str) -> str:
     """
     전체 회사 뉴스를 하나의 메시지로 조합.
     company_news: {회사명: [NewsItem, ...]}
     """
     now_kst = datetime.now(KST).strftime("%Y-%m-%d %H:%M KST")
-    lines = [f"📌 등대 포트폴리오 뉴스피드", f"🕐 {now_kst}", ""]
+    lines = [title, f"🕐 {now_kst}", ""]
 
     company_index = 1
     for company, items in company_news.items():

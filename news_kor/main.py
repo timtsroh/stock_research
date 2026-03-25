@@ -6,19 +6,25 @@ from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 
 from sheets_reader import get_companies
-from naver_news import search_news
+import news_fetcher
 from telegram_sender import build_combined_message, send_message
 
 
 KST = ZoneInfo("Asia/Seoul")
 
-FEEDS = [
-    {"sheet_name": "Light", "col": 2, "chat_id_env": "TELEGRAM_CHAT_ID_Light"},
-    {"sheet_name": "Atom",  "col": 2, "chat_id_env": "TELEGRAM_CHAT_ID_Atom"},
+# Naver 검색 피드 (한국 기업)
+NAVER_FEEDS = [
+    {"sheet_name": "Light", "col": 2, "chat_id_env": "TELEGRAM_CHAT_ID_Light", "title": "📌 등대 포트폴리오 뉴스피드 (국내)"},
+    {"sheet_name": "Atom",  "col": 2, "chat_id_env": "TELEGRAM_CHAT_ID_Atom",  "title": "📌 김아톰 포트폴리오 뉴스피드"},
+]
+
+# NewsAPI 검색 피드 (외국 기업) — Light 채널로 전송
+NEWSAPI_FEEDS = [
+    {"sheet_name": "ENG", "col": 2, "chat_id_env": "TELEGRAM_CHAT_ID_Light", "title": "📌 등대 포트폴리오 뉴스피드 (해외)"},
 ]
 
 
-def run_feed(sheet_id: str, sheet_name: str, col: int, chat_id_env: str):
+def run_feed(sheet_id: str, sheet_name: str, col: int, chat_id_env: str, search_fn, title: str):
     print(f"\n{'='*50}")
     print(f"[{sheet_name}] 피드 시작")
     print(f"{'='*50}")
@@ -45,7 +51,7 @@ def run_feed(sheet_id: str, sheet_name: str, col: int, chat_id_env: str):
 
     for company in companies:
         print(f"  → [{company}] 검색 중...")
-        news_items = search_news(company, seen_urls)
+        news_items = search_fn(company, seen_urls)
         if news_items:
             company_news[company] = news_items
             total_articles += len(news_items)
@@ -59,7 +65,7 @@ def run_feed(sheet_id: str, sheet_name: str, col: int, chat_id_env: str):
         print("[INFO] 전송할 뉴스가 없어 스킵합니다.")
         return
 
-    message = build_combined_message(company_news)
+    message = build_combined_message(company_news, title)
     success = send_message(message, chat_id_env)
     print(f"     {'전송 완료' if success else '전송 실패'}")
 
@@ -72,12 +78,32 @@ def main():
     start_time = datetime.now(KST)
     print(f"=== 뉴스 피드 시작: {start_time.strftime('%Y-%m-%d %H:%M KST')} ===")
 
-    for feed in FEEDS:
+    # 1단계: 한국 기업 뉴스 (Naver)
+    print(f"\n{'#'*50}")
+    print(f"# [1단계] 한국 기업 뉴스 — Naver")
+    print(f"{'#'*50}")
+    for feed in NAVER_FEEDS:
         run_feed(
             sheet_id=sheet_id,
             sheet_name=feed["sheet_name"],
             col=feed["col"],
             chat_id_env=feed["chat_id_env"],
+            search_fn=news_fetcher.search_naver,
+            title=feed["title"],
+        )
+
+    # 2단계: 외국 기업 뉴스 (NewsAPI)
+    print(f"\n{'#'*50}")
+    print(f"# [2단계] 외국 기업 뉴스 — NewsAPI")
+    print(f"{'#'*50}")
+    for feed in NEWSAPI_FEEDS:
+        run_feed(
+            sheet_id=sheet_id,
+            sheet_name=feed["sheet_name"],
+            col=feed["col"],
+            chat_id_env=feed["chat_id_env"],
+            search_fn=news_fetcher.search_newsapi,
+            title=feed["title"],
         )
 
     end_time = datetime.now(KST)
