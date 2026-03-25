@@ -134,8 +134,7 @@ def get_chart(ticker: str, period: str = "1y", db: Session = Depends(get_db)):
             start = end - pd.Timedelta(days=days)
             df    = fdr.DataReader(ticker, start.strftime("%Y-%m-%d"))
         else:
-            sym = f"{ticker}.KS" if market == "KR" else ticker
-            df  = yf.download(sym, period=period, auto_adjust=True, progress=False)
+            df  = yf.download(ticker, period=period, auto_adjust=True, progress=False)
         df = df[["Close"]].dropna().reset_index()
         df.columns = ["date", "close"]
         df["date"] = df["date"].astype(str)

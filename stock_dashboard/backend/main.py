@@ -36,4 +36,7 @@ if os.path.exists(_frontend_dist):
 
     @app.get("/{full_path:path}")
     def serve_spa(full_path: str):
+        if full_path.startswith("api/"):
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404)
         return FileResponse(os.path.join(_frontend_dist, "index.html"))
