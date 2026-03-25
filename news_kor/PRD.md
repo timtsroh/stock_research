@@ -60,8 +60,8 @@ Google Sheets에 등록된 한국 기업 목록을 기반으로 네이버 뉴스
 ### 5.3 Telegram 발송
 
 - 한 피드(Light 또는 Atom)의 모든 회사 뉴스를 하나의 메시지로 통합 전송
-- Light → TELEGRAM_CHAT_ID_Light 채널
-- Atom → TELEGRAM_CHAT_ID_Atom 채널
+- Light → TELEGRAM_NEWS_ID_Light 채널
+- Atom → TELEGRAM_NEWS_ID_Atom 채널
 - HTML parse_mode 사용 (볼드 처리)
 
 ### 5.4 실행 로직 흐름
@@ -72,12 +72,12 @@ main.py 실행
   ├─ [Light 피드]
   │     ├─ Light 시트 B열에서 회사 목록 로드
   │     ├─ 각 회사 Naver 뉴스 검색 (최대 3건)
-  │     └─ 통합 메시지 → TELEGRAM_CHAT_ID_Light 전송
+  │     └─ 통합 메시지 → TELEGRAM_NEWS_ID_Light 전송
   │
   └─ [Atom 피드]
         ├─ Atom 시트 B열에서 회사 목록 로드
         ├─ 각 회사 Naver 뉴스 검색 (최대 3건)
-        └─ 통합 메시지 → TELEGRAM_CHAT_ID_Atom 전송
+        └─ 통합 메시지 → TELEGRAM_NEWS_ID_Atom 전송
 ```
 
 ---
@@ -121,8 +121,8 @@ stock_research/
 | `NAVER_CLIENT_ID` | Naver OpenAPI Client ID |
 | `NAVER_CLIENT_SECRET` | Naver OpenAPI Client Secret |
 | `TELEGRAM_BOT_TOKEN` | Telegram Bot Token |
-| `TELEGRAM_CHAT_ID_Light` | Light 포트폴리오 Telegram 채널 ID |
-| `TELEGRAM_CHAT_ID_Atom` | Atom 포트폴리오 Telegram 채널 ID |
+| `TELEGRAM_NEWS_ID_Light` | Light 포트폴리오 Telegram 채널 ID |
+| `TELEGRAM_NEWS_ID_Atom` | Atom 포트폴리오 Telegram 채널 ID |
 
 ---
 

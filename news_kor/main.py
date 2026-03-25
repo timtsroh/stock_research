@@ -14,13 +14,13 @@ KST = ZoneInfo("Asia/Seoul")
 
 # Google 뉴스 RSS 피드 (한국 기업)
 NAVER_FEEDS = [
-    {"sheet_name": "Light", "col": 2, "chat_id_env": "TELEGRAM_CHAT_ID_Light", "title": "📌 등대 포트폴리오 뉴스피드 (국내)"},
-    {"sheet_name": "Atom",  "col": 2, "chat_id_env": "TELEGRAM_CHAT_ID_Atom",  "title": "📌 김아톰 포트폴리오 뉴스피드"},
+    {"sheet_name": "Light", "col": 2, "chat_id_env": "TELEGRAM_NEWS_ID_Light", "title": "📌 등대 포트폴리오 뉴스피드 (국내)"},
+    {"sheet_name": "Atom",  "col": 2, "chat_id_env": "TELEGRAM_NEWS_ID_Atom",  "title": "📌 김아톰 포트폴리오 뉴스피드"},
 ]
 
 # NewsAPI 검색 피드 (외국 기업) — Light 채널로 전송
 NEWSAPI_FEEDS = [
-    {"sheet_name": "ENG", "col": 2, "chat_id_env": "TELEGRAM_CHAT_ID_Light", "title": "📌 등대 포트폴리오 뉴스피드 (해외)"},
+    {"sheet_name": "ENG", "col": 2, "chat_id_env": "TELEGRAM_NEWS_ID_Light", "title": "📌 등대 포트폴리오 뉴스피드 (해외)"},
 ]
 
 

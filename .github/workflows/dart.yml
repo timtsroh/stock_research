@@ -27,6 +27,6 @@ jobs:
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_OAUTH_KEYS }}
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID_Light: ${{ secrets.TELEGRAM_CHAT_ID_LIGHT }}
-          TELEGRAM_CHAT_ID_Atom: ${{ secrets.TELEGRAM_CHAT_ID_ATOM }}
+          TELEGRAM_DART_ID_Light: ${{ secrets.TELEGRAM_CHAT_ID_LIGHT }}
+          TELEGRAM_DART_ID_Atom: ${{ secrets.TELEGRAM_CHAT_ID_ATOM }}
         run: python dart/main.py

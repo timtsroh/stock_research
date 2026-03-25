@@ -55,7 +55,7 @@ https://www.edaily.co.kr/article/...
 | 항목 | 규칙 |
 |---|---|
 | 메시지 수 | 피드당 1개 메시지로 통합 전송 |
-| 채널 구분 | Light → TELEGRAM_CHAT_ID_Light / Atom → TELEGRAM_CHAT_ID_Atom |
+| 채널 구분 | Light → TELEGRAM_NEWS_ID_Light / Atom → TELEGRAM_NEWS_ID_Atom |
 | 회사당 최대 기사 수 | 3건 |
 | 정렬 기준 | 최신순 |
 | 관련성 필터 | 제목+본문에 회사명 2회 미만 등장 시 제외 |

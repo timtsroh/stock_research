@@ -31,6 +31,6 @@ jobs:
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
           ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID_Light: ${{ secrets.TELEGRAM_CHAT_ID_LIGHT }}
-          TELEGRAM_CHAT_ID_Atom: ${{ secrets.TELEGRAM_CHAT_ID_ATOM }}
+          TELEGRAM_NEWS_ID_Light: ${{ secrets.TELEGRAM_CHAT_ID_LIGHT }}
+          TELEGRAM_NEWS_ID_Atom: ${{ secrets.TELEGRAM_CHAT_ID_ATOM }}
         run: python news_kor/main.py
