@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from sheets_reader import get_companies_with_corp_code
 from dart_fetcher import fetch_disclosures
 from telegram_sender import build_combined_message, send_message
+from sheets_writer import write_disclosures_to_sheet
 
 
 KST = ZoneInfo("Asia/Seoul")
@@ -16,16 +17,18 @@ DART_FEEDS = [
         "sheet_name": "Light",
         "chat_id_env": "TELEGRAM_DART_ID_Light",
         "title": "📋 등대 포트폴리오 DART 공시피드",
+        "log_sheet": "DART1",
     },
     {
         "sheet_name": "Atom",
         "chat_id_env": "TELEGRAM_DART_ID_Atom",
         "title": "📋 김아톰 포트폴리오 DART 공시피드",
+        "log_sheet": "DART2",
     },
 ]
 
 
-def run_feed(sheet_id: str, sheet_name: str, chat_id_env: str, title: str):
+def run_feed(sheet_id: str, sheet_name: str, chat_id_env: str, title: str, log_sheet: str = ""):
     print(f"\n{'='*50}")
     print(f"[{sheet_name}] DART 공시 피드 시작")
     print(f"{'='*50}")
@@ -69,6 +72,11 @@ def run_feed(sheet_id: str, sheet_name: str, chat_id_env: str, title: str):
     success = send_message(message, chat_id_env)
     print(f"     {'전송 완료' if success else '전송 실패'}")
 
+    # 4. 구글 시트 기록
+    if log_sheet:
+        print(f"\n[4] 구글 시트 기록 중... ({log_sheet})")
+        write_disclosures_to_sheet(sheet_id, log_sheet, company_disclosures)
+
 
 def main():
     load_dotenv()
@@ -84,6 +92,7 @@ def main():
             sheet_name=feed["sheet_name"],
             chat_id_env=feed["chat_id_env"],
             title=feed["title"],
+            log_sheet=feed["log_sheet"],
         )
 
     end_time = datetime.now(KST)
