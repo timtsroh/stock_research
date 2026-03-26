@@ -111,7 +111,7 @@ def fill_corp_codes(sheet_id: str, corp_map: dict):
 
             corp_code = corp_map.get(name)
             if corp_code:
-                ws.update_cell(row, code_col, corp_code)
+                ws.update_cell(row, code_col, f"'{corp_code}")
                 print(f"  ✓ {name} → {corp_code}")
                 filled += 1
             else:
