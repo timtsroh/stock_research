@@ -1,13 +1,10 @@
 import os
-from datetime import datetime
-from zoneinfo import ZoneInfo
 
 import requests
 
 from dart_fetcher import DisclosureItem
 
 
-KST = ZoneInfo("Asia/Seoul")
 TELEGRAM_API = "https://api.telegram.org/bot{token}/sendMessage"
 
 
@@ -16,14 +13,14 @@ def build_combined_message(company_disclosures: dict, title: str) -> str:
     전체 회사 공시를 하나의 메시지로 조합.
     company_disclosures: {회사명: [DisclosureItem, ...]}
     """
-    now_kst = datetime.now(KST).strftime("%Y-%m-%d %H:%M KST")
-    lines = [title, f"🕐 {now_kst}", ""]
+    lines = [title, ""]
 
     for company, items in company_disclosures.items():
         if not items:
             continue
 
-        lines.append(f"<b>{company}</b>")
+        date_str = f"{items[0].rcept_dt[:4]}-{items[0].rcept_dt[4:6]}-{items[0].rcept_dt[6:]}"
+        lines.append(f"<b>{company} ({date_str})</b>")
 
         for item in items:
             report_nm = item.report_nm

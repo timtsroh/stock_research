@@ -2,7 +2,7 @@ name: dart 전자공시피드
 
 on:
   schedule:
-    - cron: '0 21 * * *'   # KST 06:00 (UTC 21:00 전날)
+    - cron: '1 15 * * *'   # KST 00:01 (UTC 15:01 전날)
   workflow_dispatch:          # 수동 실행 버튼
 
 jobs:
