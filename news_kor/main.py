@@ -8,23 +8,24 @@ from dotenv import load_dotenv
 from sheets_reader import get_companies, get_companies_with_tickers
 import news_fetcher
 from telegram_sender import build_combined_message, send_message
+from sheets_writer import write_news_to_sheet
 
 
 KST = ZoneInfo("Asia/Seoul")
 
 # Naver 검색 피드 (한국 기업)
 NAVER_FEEDS = [
-    {"sheet_name": "Light", "col": 2, "chat_id_env": "TELEGRAM_NEWS_ID_Light", "title": "📌 등대 포트폴리오 뉴스피드 (국내)"},
-    {"sheet_name": "Atom",  "col": 2, "chat_id_env": "TELEGRAM_NEWS_ID_Atom",  "title": "📌 김아톰 포트폴리오 뉴스피드"},
+    {"sheet_name": "Light", "col": 2, "chat_id_env": "TELEGRAM_NEWS_ID_Light", "title": "📌 등대 포트폴리오 뉴스피드 (국내)", "log_sheet": "News1"},
+    {"sheet_name": "Atom",  "col": 2, "chat_id_env": "TELEGRAM_NEWS_ID_Atom",  "title": "📌 김아톰 포트폴리오 뉴스피드",      "log_sheet": "News2"},
 ]
 
 # NewsAPI 검색 피드 (외국 기업) — Light 채널로 전송
 NEWSAPI_FEEDS = [
-    {"sheet_name": "ENG", "col": 2, "chat_id_env": "TELEGRAM_NEWS_ID_Light", "title": "📌 등대 포트폴리오 뉴스피드 (해외)"},
+    {"sheet_name": "ENG", "col": 2, "chat_id_env": "TELEGRAM_NEWS_ID_Light", "title": "📌 등대 포트폴리오 뉴스피드 (해외)", "log_sheet": "News3"},
 ]
 
 
-def run_feed(sheet_id: str, sheet_name: str, col: int, chat_id_env: str, search_fn, title: str):
+def run_feed(sheet_id: str, sheet_name: str, col: int, chat_id_env: str, search_fn, title: str, log_sheet: str = ""):
     print(f"\n{'='*50}")
     print(f"[{sheet_name}] 피드 시작")
     print(f"{'='*50}")
@@ -69,8 +70,13 @@ def run_feed(sheet_id: str, sheet_name: str, col: int, chat_id_env: str, search_
     success = send_message(message, chat_id_env)
     print(f"     {'전송 완료' if success else '전송 실패'}")
 
+    # 4. 구글 시트 기록
+    if log_sheet:
+        print(f"\n[4] 구글 시트 기록 중... ({log_sheet})")
+        write_news_to_sheet(sheet_id, log_sheet, company_news)
 
-def run_eng_feed(sheet_id: str, sheet_name: str, chat_id_env: str, title: str):
+
+def run_eng_feed(sheet_id: str, sheet_name: str, chat_id_env: str, title: str, log_sheet: str = ""):
     print(f"\n{'='*50}")
     print(f"[{sheet_name}] 피드 시작")
     print(f"{'='*50}")
@@ -111,6 +117,11 @@ def run_eng_feed(sheet_id: str, sheet_name: str, chat_id_env: str, title: str):
     success = send_message(message, chat_id_env)
     print(f"     {'전송 완료' if success else '전송 실패'}")
 
+    # 4. 구글 시트 기록
+    if log_sheet:
+        print(f"\n[4] 구글 시트 기록 중... ({log_sheet})")
+        write_news_to_sheet(sheet_id, log_sheet, company_news)
+
 
 def main():
     load_dotenv()
@@ -132,6 +143,7 @@ def main():
             chat_id_env=feed["chat_id_env"],
             search_fn=news_fetcher.search_naver,
             title=feed["title"],
+            log_sheet=feed["log_sheet"],
         )
 
     # 2단계: 외국 기업 뉴스 (Marketaux + Alpha Vantage)
@@ -144,6 +156,7 @@ def main():
             sheet_name=feed["sheet_name"],
             chat_id_env=feed["chat_id_env"],
             title=feed["title"],
+            log_sheet=feed["log_sheet"],
         )
 
     end_time = datetime.now(KST)
