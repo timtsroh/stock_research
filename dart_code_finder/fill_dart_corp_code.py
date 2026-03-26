@@ -17,6 +17,7 @@ import json
 import os
 import zipfile
 import xml.etree.ElementTree as ET
+from datetime import datetime, timedelta
 
 import requests
 import gspread
@@ -26,6 +27,8 @@ from dotenv import load_dotenv
 
 # ── 설정 ──────────────────────────────────────────────
 DART_CORP_CODE_URL = "https://opendart.fss.or.kr/api/corpCode.xml"
+CACHE_FILE = os.path.join(os.path.dirname(__file__), "corp_code_cache.json")
+CACHE_DAYS = 7  # 캐시 유효 기간 (일)
 
 TARGET_SHEETS = [
     {"sheet_name": "Light", "name_col": 2, "corp_code_col": 4},
@@ -36,11 +39,23 @@ TARGET_SHEETS = [
 
 def load_dart_corp_codes(api_key: str) -> dict:
     """
-    DART에서 전체 기업 목록 ZIP을 다운로드하고
-    {회사명: corp_code} 딕셔너리를 반환한다.
-    상장사(stock_code 있는 기업)만 포함.
+    DART 기업 목록을 반환한다.
+    캐시 파일이 있고 유효 기간(7일) 이내면 캐시를 사용, 아니면 새로 다운로드.
     """
-    print("DART 기업 목록 다운로드 중...")
+    # 캐시 확인
+    if os.path.exists(CACHE_FILE):
+        with open(CACHE_FILE, "r") as f:
+            cache = json.load(f)
+        cached_at = datetime.fromisoformat(cache["cached_at"])
+        if datetime.now() - cached_at < timedelta(days=CACHE_DAYS):
+            print(f"캐시 사용 중 (저장일: {cached_at.strftime('%Y-%m-%d')}, 상장사 {len(cache['data']):,}개)")
+            return cache["data"]
+        else:
+            print(f"캐시 만료 ({cached_at.strftime('%Y-%m-%d')}), 새로 다운로드...")
+    else:
+        print("캐시 없음, DART 기업 목록 다운로드 중...")
+
+    # 새로 다운로드
     params = {"crtfc_key": api_key}
     resp = requests.get(DART_CORP_CODE_URL, params=params, timeout=30)
     resp.raise_for_status()
@@ -58,7 +73,11 @@ def load_dart_corp_codes(api_key: str) -> dict:
         if corp_name and corp_code and stock_code:
             corp_map[corp_name] = corp_code
 
-    print(f"  → 상장사 {len(corp_map):,}개 로드 완료")
+    # 캐시 저장
+    with open(CACHE_FILE, "w") as f:
+        json.dump({"cached_at": datetime.now().isoformat(), "data": corp_map}, f, ensure_ascii=False)
+
+    print(f"  → 상장사 {len(corp_map):,}개 로드 및 캐시 저장 완료")
     return corp_map
 
 

@@ -9,3 +9,4 @@ venv/
 .venv/
 *.egg-info/
 .DS_Store
+corp_code_cache.json
