@@ -28,7 +28,7 @@ def build_combined_message(company_disclosures: dict, title: str) -> str:
                 report_nm += f" [{item.rm}]"
             lines.append(report_nm)
             lines.append(item.link)
-            lines.append(f"제출인: {item.flr_nm} | {item.rcept_dt[:4]}-{item.rcept_dt[4:6]}-{item.rcept_dt[6:]}")
+            lines.append(f"제출인: {item.flr_nm}")
             lines.append("")
 
         lines.append("")
