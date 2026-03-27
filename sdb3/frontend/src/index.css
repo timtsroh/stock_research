@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 font-sans antialiased;
+  background-image:
+    linear-gradient(to bottom, rgba(250, 250, 249, 0.92), rgba(241, 245, 249, 1)),
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.12), transparent 28%),
+    radial-gradient(circle at top right, rgba(251, 191, 36, 0.12), transparent 22%);
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.bg-app {
+  background:
+    linear-gradient(to bottom, rgba(248, 250, 252, 0.92), rgba(241, 245, 249, 1)),
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.1), transparent 28%);
+}
+
+.rbc-calendar {
+  @apply bg-transparent text-slate-900;
+}
+
+.rbc-toolbar {
+  @apply mb-4 text-slate-600;
+}
+
+.rbc-toolbar button {
+  @apply rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-600;
+}
+
+.rbc-toolbar button:hover,
+.rbc-toolbar button:focus {
+  @apply bg-slate-50 text-slate-900;
+}
+
+.rbc-toolbar button.rbc-active {
+  @apply bg-sky-600 text-white;
+}
+
+.rbc-month-view,
+.rbc-time-view,
+.rbc-agenda-view {
+  @apply overflow-hidden rounded-[24px] border border-slate-200;
+}
+
+.rbc-header,
+.rbc-time-header-content,
+.rbc-time-content,
+.rbc-day-bg,
+.rbc-month-row,
+.rbc-timeslot-group,
+.rbc-time-header-gutter,
+.rbc-time-gutter,
+.rbc-time-view {
+  border-color: rgba(148, 163, 184, 0.24) !important;
+}
+
+.rbc-header {
+  @apply bg-white py-3 text-xs uppercase tracking-[0.18em] text-slate-500;
+}
+
+.rbc-date-cell {
+  @apply pr-2 pt-1 text-xs text-slate-500;
+}
+
+.rbc-day-bg,
+.rbc-time-content,
+.rbc-month-row {
+  @apply bg-white;
+}
+
+.rbc-off-range-bg {
+  background: rgba(241, 245, 249, 0.7) !important;
+}
+
+.rbc-today {
+  background: rgba(14, 165, 233, 0.08) !important;
+}
+
+.rbc-event {
+  @apply border-0 px-2 py-1 text-xs shadow-none;
+}
+
+.rbc-show-more {
+  @apply text-sky-700;
+}
