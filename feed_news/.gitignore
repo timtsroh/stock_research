@@ -1,4 +1,0 @@
-.env
-gcp-oauth.keys2.json
-__pycache__/
-*.pyc
